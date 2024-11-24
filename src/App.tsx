@@ -23,7 +23,7 @@ const AppContent = () => {
     <BrowserRouter>
       <div className={`min-h-screen bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-text transition-colors duration-200 ${isDarkMode ? 'dark' : ''}`}>
         <Header />
-        <main className="pt-10 pb-8">
+        <main className="pt-10">
           <Toaster richColors position="top-center" />
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
