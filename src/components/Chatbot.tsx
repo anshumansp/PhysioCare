@@ -5,9 +5,10 @@ import useStore from '../store/useStore';
 import { Send } from 'lucide-react';
 
 interface Message {
-  message: string;
-  response: string;
-  createdAt: Date;
+  id: string;
+  type: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
 }
 
 const Chatbot: React.FC = () => {
@@ -16,7 +17,6 @@ const Chatbot: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { setShowAppointmentModal, showChat, setShowChat } = useStore();
-  const isDarkMode = document.documentElement.classList.contains('dark');
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -27,33 +27,42 @@ const Chatbot: React.FC = () => {
   }, [messages]);
 
   const handleSendMessage = async (message: string) => {
-    if (!message.trim()) return;
+    if (!message.trim() || isLoading) return;
 
-    const newUserMessage = { message, response: '', createdAt: new Date() };
-    setMessages(prev => [...prev, newUserMessage]);
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: message.trim(),
+      timestamp: new Date(),
+    };
+
+    setMessages(prev => [...prev, userMessage]);
     setInputValue('');
     setIsLoading(true);
 
     try {
       const response = await generateResponse(message);
       
-      setMessages(prev => [
-        ...prev.slice(0, -1),
-        { ...newUserMessage, response }
-      ]);
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: response,
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
 
       if (response.toLowerCase().includes('schedule') || response.toLowerCase().includes('appointment')) {
         setShowAppointmentModal(true);
       }
     } catch (error) {
-      console.error('Error sending message:', error);
-      setMessages(prev => [
-        ...prev.slice(0, -1),
-        { 
-          ...newUserMessage, 
-          response: 'Sorry, I encountered an error. Please try again.' 
-        }
-      ]);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: 'Sorry, I encountered an error. Please try again.',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -67,10 +76,10 @@ const Chatbot: React.FC = () => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
       style={{ top: '5rem' }}
-      className="fixed bottom-4 right-4 w-96 h-[calc(100vh-8rem)] bg-white dark:bg-gray-800 rounded-lg shadow-xl flex flex-col overflow-hidden"
+      className="fixed bottom-4 right-4 w-96 h-[calc(100vh-8rem)] bg-white dark:bg-gray-800 rounded-lg shadow-xl flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700"
     >
-      <div className="p-4 border-b dark:border-gray-700 flex justify-between items-center bg-white dark:bg-gray-800">
-        <h2 className="text-lg font-semibold dark:text-white">PhysioAI Assistant</h2>
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-white dark:bg-gray-800 shadow-sm">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">PhysioAI Assistant</h2>
         <button
           onClick={() => setShowChat(false)}
           className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -81,24 +90,24 @@ const Chatbot: React.FC = () => {
 
       <div className="flex-1 overflow-y-auto p-4 bg-gray-50 dark:bg-gray-900">
         <AnimatePresence>
-          {messages.map((message, index) => (
+          {messages.map((message) => (
             <motion.div
-              key={index}
+              key={message.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className={`flex ${index % 2 === 0 ? 'justify-end' : 'justify-start'} mb-4`}
+              className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'} mb-4`}
             >
               <div
-                className={`max-w-[80%] p-3 rounded-lg ${
-                  index % 2 === 0
+                className={`max-w-[80%] p-3 rounded-lg shadow-sm ${
+                  message.type === 'user'
                     ? 'bg-indigo-600 text-white rounded-br-none'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-none'
+                    : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-bl-none border border-gray-200 dark:border-gray-700'
                 }`}
               >
-                <p className="text-sm">{index % 2 === 0 ? message.message : message.response}</p>
-                <p className={`text-xs mt-1 ${index % 2 === 0 ? 'text-indigo-200' : 'text-gray-500 dark:text-gray-400'}`}>
-                  {new Date(message.createdAt).toLocaleTimeString()}
+                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                <p className={`text-xs mt-1 ${message.type === 'user' ? 'text-indigo-200' : 'text-gray-500 dark:text-gray-400'}`}>
+                  {message.timestamp.toLocaleTimeString()}
                 </p>
               </div>
             </motion.div>
@@ -106,11 +115,11 @@ const Chatbot: React.FC = () => {
         </AnimatePresence>
         {isLoading && (
           <div className="flex justify-start mb-4">
-            <div className="bg-gray-200 dark:bg-gray-700 p-3 rounded-lg rounded-bl-none">
+            <div className="bg-white dark:bg-gray-800 p-3 rounded-lg rounded-bl-none border border-gray-200 dark:border-gray-700 shadow-sm">
               <div className="flex space-x-2">
-                <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                <div className="w-2 h-2 bg-indigo-400 dark:bg-indigo-500 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-indigo-400 dark:bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-2 h-2 bg-indigo-400 dark:bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
               </div>
             </div>
           </div>
@@ -120,7 +129,7 @@ const Chatbot: React.FC = () => {
 
       <form 
         onSubmit={(e) => { e.preventDefault(); handleSendMessage(inputValue); }} 
-        className="p-4 border-t dark:border-gray-700 bg-white dark:bg-gray-800"
+        className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
       >
         <div className="flex space-x-2">
           <input
@@ -128,7 +137,7 @@ const Chatbot: React.FC = () => {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Type your message here..."
-            className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+            className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
           />
           <button
             type="submit"
