@@ -1,13 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { useChatStore } from '../store/useChatStore';
+import useStore from '../store/useStore';
 import Team from '../components/Team';
 import Testimonials from '../components/Testimonials';
 
 const Home = () => {
   const navigate = useNavigate();
-  const { openChat } = useChatStore();
+  const { setShowChat } = useStore();
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -87,7 +87,7 @@ const Home = () => {
               Have questions? Our AI assistant is here to help you 24/7 with instant responses.
             </p>
             <motion.button
-              onClick={openChat}
+              onClick={() => setShowChat(true)}
               className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -97,50 +97,48 @@ const Home = () => {
           </motion.div>
         </motion.div>
 
+        {/* Features Section */}
         <motion.div 
           className="grid md:grid-cols-3 gap-8"
           variants={containerVariants}
         >
-          <motion.div 
-            className="bg-white dark:bg-dark-card rounded-xl shadow-xl p-6"
+          <motion.div
+            className="text-center"
             variants={itemVariants}
-            whileHover={{ y: -5 }}
           >
-            <div className="text-4xl mb-4">🏆</div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-dark-text mb-2">
-              Expert Care
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              Our team of certified physiotherapists brings years of experience and expertise.
-            </p>
+            <div className="bg-primary-100 dark:bg-primary-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold mb-2">Expert Care</h3>
+            <p className="text-gray-600 dark:text-gray-400">Experienced physiotherapists dedicated to your recovery</p>
           </motion.div>
 
-          <motion.div 
-            className="bg-white dark:bg-dark-card rounded-xl shadow-xl p-6"
+          <motion.div
+            className="text-center"
             variants={itemVariants}
-            whileHover={{ y: -5 }}
           >
-            <div className="text-4xl mb-4">⚡</div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-dark-text mb-2">
-              Quick Recovery
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              Proven techniques and personalized treatment plans for faster healing.
-            </p>
+            <div className="bg-primary-100 dark:bg-primary-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold mb-2">Flexible Schedule</h3>
+            <p className="text-gray-600 dark:text-gray-400">Convenient appointment times that work for you</p>
           </motion.div>
 
-          <motion.div 
-            className="bg-white dark:bg-dark-card rounded-xl shadow-xl p-6"
+          <motion.div
+            className="text-center"
             variants={itemVariants}
-            whileHover={{ y: -5 }}
           >
-            <div className="text-4xl mb-4">💪</div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-dark-text mb-2">
-              Lasting Results
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              We focus on long-term solutions, not just temporary relief.
-            </p>
+            <div className="bg-primary-100 dark:bg-primary-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold mb-2">Fast Recovery</h3>
+            <p className="text-gray-600 dark:text-gray-400">Proven techniques for optimal rehabilitation</p>
           </motion.div>
         </motion.div>
       </motion.div>
