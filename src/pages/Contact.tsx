@@ -78,10 +78,22 @@ const Contact = () => {
 
   const css = `
     .rdp {
-      --rdp-cell-size: 40px;
+      --rdp-cell-size: 45px;
       --rdp-accent-color: #4F46E5;
       --rdp-background-color: #E0E7FF;
       margin: 0;
+      width: 100%;
+    }
+    .rdp-months {
+      width: 100%;
+      justify-content: space-around;
+    }
+    .rdp-month {
+      width: 100%;
+    }
+    .rdp-table {
+      width: 100%;
+      max-width: none;
     }
     .rdp-day_selected:not([disabled]) { 
       background-color: var(--rdp-accent-color);
@@ -120,7 +132,7 @@ const Contact = () => {
               Schedule an Appointment
             </h2>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
+              <div className="mt-6">
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Full Name
                 </label>
@@ -131,11 +143,11 @@ const Contact = () => {
                   required
                   value={formData.name}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-dark-hover dark:border-dark-hover dark:text-dark-text sm:text-sm"
+                  className="mt-2 block w-full h-12 px-4 rounded-md border-2 border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-dark-hover dark:border-gray-600 dark:text-dark-text dark:focus:border-primary-400 sm:text-sm"
                 />
               </div>
 
-              <div>
+              <div className="mt-6">
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Email
                 </label>
@@ -146,11 +158,11 @@ const Contact = () => {
                   required
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-dark-hover dark:border-dark-hover dark:text-dark-text sm:text-sm"
+                  className="mt-2 block w-full h-12 px-4 rounded-md border-2 border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-dark-hover dark:border-gray-600 dark:text-dark-text dark:focus:border-primary-400 sm:text-sm"
                 />
               </div>
 
-              <div>
+              <div className="mt-6">
                 <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Phone Number
                 </label>
@@ -161,31 +173,31 @@ const Contact = () => {
                   required
                   value={formData.phone}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-dark-hover dark:border-dark-hover dark:text-dark-text sm:text-sm"
+                  className="mt-2 block w-full h-12 px-4 rounded-md border-2 border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-dark-hover dark:border-gray-600 dark:text-dark-text dark:focus:border-primary-400 sm:text-sm"
                 />
               </div>
 
-              <div>
+              <div className="mt-6">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Preferred Date
                 </label>
-                <div className="border rounded-lg p-4 bg-gray-50 dark:bg-dark-hover">
+                <div className="border-2 rounded-lg p-4 bg-gray-50 dark:bg-dark-hover w-full flex justify-center border-gray-300 dark:border-gray-600">
                   <DayPicker
                     mode="single"
                     selected={formData.date}
                     onSelect={handleDateSelect}
                     fromDate={new Date()}
                     required
-                    className="mx-auto"
+                    className="w-full max-w-full"
                   />
                 </div>
               </div>
 
-              <div>
+              <div className="mt-6">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Preferred Time
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {timeSlots.map((slot) => (
                     <motion.button
                       key={slot}
@@ -193,7 +205,7 @@ const Contact = () => {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => handleTimeSlotSelect(slot)}
-                      className={`p-2 text-sm rounded-md transition-colors ${
+                      className={`p-3 h-12 text-sm rounded-md transition-colors ${
                         selectedTimeSlot === slot
                           ? 'bg-primary-600 text-white'
                           : 'bg-gray-100 dark:bg-dark-hover text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
@@ -215,7 +227,8 @@ const Contact = () => {
                   rows={4}
                   value={formData.message}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-dark-hover dark:border-dark-hover dark:text-dark-text sm:text-sm"
+                  className="mt-2 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-dark-hover dark:border-gray-600 dark:text-dark-text dark:focus:border-primary-400 sm:text-sm p-4"
+                  placeholder="Please provide any additional information about your appointment..."
                 />
               </div>
 
