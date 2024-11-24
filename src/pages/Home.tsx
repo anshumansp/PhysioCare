@@ -1,13 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import useStore from '../store/useStore';
+import { useChatStore } from '../store/useChatStore';
 import Team from '../components/Team';
 import Testimonials from '../components/Testimonials';
 
 const Home = () => {
   const navigate = useNavigate();
-  const { setShowChat } = useStore();
+  const { openChat } = useChatStore();
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -87,7 +87,7 @@ const Home = () => {
               Have questions? Our AI assistant is here to help you 24/7 with instant responses.
             </p>
             <motion.button
-              onClick={() => setShowChat(true)}
+              onClick={openChat}
               className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

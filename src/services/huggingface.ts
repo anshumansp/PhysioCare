@@ -1,16 +1,7 @@
 import axios from 'axios';
 
-const API_URL = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 const API_KEY = import.meta.env.VITE_HUGGING_FACE_API_KEY;
-
-const huggingfaceApi = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Authorization': `Bearer ${API_KEY}`,
-    'Content-Type': 'application/json',
-  },
-  timeout: 60000,
-});
 
 const SYSTEM_PROMPT = `You are Dr. AI, a professional physiotherapist conducting a patient consultation. Your role is to understand the patient's condition through careful questioning and provide appropriate guidance.
 
@@ -154,24 +145,40 @@ export const resetContext = () => {
   };
 };
 
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export const sendMessage = async (message: string): Promise<string> => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ message }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to send message');
+    }
+
+    const data = await response.json();
+    return data.message;
+  } catch (error) {
+    console.error('Error sending message:', error);
+    throw error;
+  }
+};
+
 export const generateResponse = async (message: string) => {
   try {
     updateConversationState(message, true);
 
-    const response = await huggingfaceApi.post('', {
-      inputs: `${SYSTEM_PROMPT.replace('{context}', conversationState.context)}\n\nHuman: ${message}\nDr. AI: `,
-      parameters: {
-        max_new_tokens: 150,
-        temperature: 0.7,
-        top_p: 0.95,
-        do_sample: true,
-        return_full_text: false,
-        repetition_penalty: 1.2,
-        stop: ["Patient:", "Human:", "\n\n"]
-      }
-    });
+    const response = await sendMessage(message);
 
-    let assistantResponse = response.data[0].generated_text || '';
+    let assistantResponse = response || '';
     assistantResponse = cleanResponse(assistantResponse);
 
     if (!assistantResponse) {
