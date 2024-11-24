@@ -7,7 +7,7 @@ import { Moon, Sun, LogOut } from 'lucide-react';
 const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { isDarkMode, toggleTheme } = useTheme();
+  const { isDarkMode, toggleDarkMode } = useTheme();
   const token = localStorage.getItem('token');
 
   const links = [
@@ -49,7 +49,7 @@ const Header = () => {
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              onClick={toggleTheme}
+              onClick={toggleDarkMode}
               className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dark-hover"
               aria-label="Toggle theme"
             >

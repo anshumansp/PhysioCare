@@ -21,7 +21,7 @@ const AppContent = () => {
   
   return (
     <BrowserRouter>
-      <div className={`min-h-screen ${isDarkMode ? 'dark' : ''} bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-text font-poppins transition-colors duration-200`}>
+      <div className={`min-h-screen bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-text transition-colors duration-200 ${isDarkMode ? 'dark' : ''}`}>
         <Header />
         <Toaster richColors position="top-center" />
         <Suspense fallback={<LoadingSpinner />}>
@@ -35,11 +35,6 @@ const AppContent = () => {
         </Suspense>
         <Footer />
         <Chatbot />
-        <Toaster 
-          position="top-right"
-          theme="system"
-          className="dark:bg-dark-card dark:text-dark-text"
-        />
       </div>
     </BrowserRouter>
   );
