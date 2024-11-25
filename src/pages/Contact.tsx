@@ -1,25 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
+import { createAppointment } from '../services/appointment';
+import { getCurrentUser } from '../services/auth';
 
 interface FormData {
-  name: string;
-  email: string;
-  phone: string;
-  date: Date | undefined;
-  timeSlot: string;
-  message: string;
+  patientName: string;
+  age: string;
+  gender: 'male' | 'female' | 'other';
+  contactNumber: string;
+  appointmentDate: Date | undefined;
+  appointmentTime: string;
+  condition: string;
+  previousHistory: string;
 }
 
 const initialFormData: FormData = {
-  name: '',
-  email: '',
-  phone: '',
-  date: undefined,
-  timeSlot: '',
-  message: ''
+  patientName: '',
+  age: '',
+  gender: 'male',
+  contactNumber: '',
+  appointmentDate: undefined,
+  appointmentTime: '',
+  condition: '',
+  previousHistory: ''
 };
 
 const timeSlots = [
@@ -28,10 +35,21 @@ const timeSlots = [
 ];
 
 const Contact = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('');
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  useEffect(() => {
+    const user = getCurrentUser();
+    if (!user) {
+      toast.error('Please login to schedule an appointment');
+      navigate('/login');
+    }
+  }, [navigate]);
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -42,7 +60,7 @@ const Contact = () => {
   const handleDateSelect = (date: Date | undefined) => {
     setFormData(prev => ({
       ...prev,
-      date: date
+      appointmentDate: date
     }));
   };
 
@@ -50,30 +68,31 @@ const Contact = () => {
     setSelectedTimeSlot(slot);
     setFormData(prev => ({
       ...prev,
-      timeSlot: slot
+      appointmentTime: slot
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Store form data in localStorage
-    const submissions = JSON.parse(localStorage.getItem('appointmentSubmissions') || '[]');
-    submissions.push({
-      ...formData,
-      date: formData.date?.toISOString(),
-      submittedAt: new Date().toISOString()
-    });
-    localStorage.setItem('appointmentSubmissions', JSON.stringify(submissions));
+    if (!formData.appointmentDate) {
+      toast.error('Please select an appointment date');
+      return;
+    }
 
-    // Show success message
-    toast.success('Appointment request submitted successfully! We will contact you soon.', {
-      duration: 5000,
-    });
+    try {
+      await createAppointment({
+        ...formData,
+        age: parseInt(formData.age),
+        appointmentDate: formData.appointmentDate
+      });
 
-    // Clear form
-    setFormData(initialFormData);
-    setSelectedTimeSlot('');
+      toast.success('Appointment scheduled successfully!');
+      setFormData(initialFormData);
+      setSelectedTimeSlot('');
+    } catch (error) {
+      toast.error('Failed to schedule appointment. Please try again.');
+    }
   };
 
   const css = `
@@ -133,45 +152,63 @@ const Contact = () => {
             </h2>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="mt-6">
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Full Name
+                <label htmlFor="patientName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Patient Name
                 </label>
                 <input
                   type="text"
-                  id="name"
-                  name="name"
+                  id="patientName"
+                  name="patientName"
                   required
-                  value={formData.name}
+                  value={formData.patientName}
                   onChange={handleInputChange}
                   className="mt-2 block w-full h-12 px-4 rounded-md border-2 border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-dark-hover dark:border-gray-600 dark:text-dark-text dark:focus:border-primary-400 sm:text-sm"
                 />
               </div>
 
               <div className="mt-6">
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Email
+                <label htmlFor="age" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Age
                 </label>
                 <input
-                  type="email"
-                  id="email"
-                  name="email"
+                  type="number"
+                  id="age"
+                  name="age"
                   required
-                  value={formData.email}
+                  value={formData.age}
                   onChange={handleInputChange}
                   className="mt-2 block w-full h-12 px-4 rounded-md border-2 border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-dark-hover dark:border-gray-600 dark:text-dark-text dark:focus:border-primary-400 sm:text-sm"
                 />
               </div>
 
               <div className="mt-6">
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Phone Number
+                <label htmlFor="gender" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Gender
+                </label>
+                <select
+                  id="gender"
+                  name="gender"
+                  required
+                  value={formData.gender}
+                  onChange={handleInputChange}
+                  className="mt-2 block w-full h-12 px-4 rounded-md border-2 border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-dark-hover dark:border-gray-600 dark:text-dark-text dark:focus:border-primary-400 sm:text-sm"
+                >
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div className="mt-6">
+                <label htmlFor="contactNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Contact Number
                 </label>
                 <input
                   type="tel"
-                  id="phone"
-                  name="phone"
+                  id="contactNumber"
+                  name="contactNumber"
                   required
-                  value={formData.phone}
+                  value={formData.contactNumber}
                   onChange={handleInputChange}
                   className="mt-2 block w-full h-12 px-4 rounded-md border-2 border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-dark-hover dark:border-gray-600 dark:text-dark-text dark:focus:border-primary-400 sm:text-sm"
                 />
@@ -179,12 +216,12 @@ const Contact = () => {
 
               <div className="mt-6">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Preferred Date
+                  Appointment Date
                 </label>
                 <div className="border-2 rounded-lg p-4 bg-gray-50 dark:bg-dark-hover w-full flex justify-center border-gray-300 dark:border-gray-600">
                   <DayPicker
                     mode="single"
-                    selected={formData.date}
+                    selected={formData.appointmentDate}
                     onSelect={handleDateSelect}
                     fromDate={new Date()}
                     required
@@ -195,7 +232,7 @@ const Contact = () => {
 
               <div className="mt-6">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Preferred Time
+                  Appointment Time
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {timeSlots.map((slot) => (
@@ -218,17 +255,32 @@ const Contact = () => {
               </div>
 
               <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Additional Notes
+                <label htmlFor="condition" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Condition
                 </label>
                 <textarea
-                  id="message"
-                  name="message"
+                  id="condition"
+                  name="condition"
                   rows={4}
-                  value={formData.message}
+                  value={formData.condition}
                   onChange={handleInputChange}
                   className="mt-2 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-dark-hover dark:border-gray-600 dark:text-dark-text dark:focus:border-primary-400 sm:text-sm p-4"
-                  placeholder="Please provide any additional information about your appointment..."
+                  placeholder="Please provide any additional information about your condition..."
+                />
+              </div>
+
+              <div>
+                <label htmlFor="previousHistory" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Previous History
+                </label>
+                <textarea
+                  id="previousHistory"
+                  name="previousHistory"
+                  rows={4}
+                  value={formData.previousHistory}
+                  onChange={handleInputChange}
+                  className="mt-2 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-dark-hover dark:border-gray-600 dark:text-dark-text dark:focus:border-primary-400 sm:text-sm p-4"
+                  placeholder="Please provide any previous medical history..."
                 />
               </div>
 

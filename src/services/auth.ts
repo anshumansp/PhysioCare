@@ -20,9 +20,13 @@ export interface RegisterCredentials extends LoginCredentials {
 
 // Register user
 export const register = async (userData: RegisterCredentials): Promise<UserData> => {
+  console.log(API_URL)
   const response = await axios.post(`${API_URL}/register`, userData);
   if (response.data) {
-    localStorage.setItem('user', JSON.stringify(response.data));
+    const { token, user } = response.data;
+    const userData = { ...user, token };
+    localStorage.setItem('user', JSON.stringify(userData));
+    return userData;
   }
   return response.data;
 };
@@ -31,7 +35,10 @@ export const register = async (userData: RegisterCredentials): Promise<UserData>
 export const login = async (credentials: LoginCredentials): Promise<UserData> => {
   const response = await axios.post(`${API_URL}/login`, credentials);
   if (response.data) {
-    localStorage.setItem('user', JSON.stringify(response.data));
+    const { token, user } = response.data;
+    const userData = { ...user, token };
+    localStorage.setItem('user', JSON.stringify(userData));
+    return userData;
   }
   return response.data;
 };
@@ -47,22 +54,11 @@ export const getCurrentUser = (): UserData | null => {
   return user ? JSON.parse(user) : null;
 };
 
-// Get user profile
-export const getProfile = async (): Promise<UserData> => {
-  const user = getCurrentUser();
-  const response = await axios.get(`${API_URL}/me`, {
-    headers: {
-      Authorization: `Bearer ${user?.token}`,
-    },
-  });
-  return response.data;
-};
-
-// Axios interceptor for authentication
+// Add axios interceptor to add token to all requests
 axios.interceptors.request.use(
   (config) => {
     const user = getCurrentUser();
-    if (user && user.token) {
+    if (user?.token) {
       config.headers.Authorization = `Bearer ${user.token}`;
     }
     return config;

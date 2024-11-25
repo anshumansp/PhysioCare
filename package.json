@@ -12,7 +12,6 @@
     "coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@clerk/clerk-react": "^5.17.0",
     "@fontsource/poppins": "^5.0.8",
     "@sentry/react": "^8.40.0",
     "axios": "^1.6.2",
@@ -24,6 +23,7 @@
     "react": "^18.2.0",
     "react-day-picker": "^8.9.1",
     "react-dom": "^18.2.0",
+    "react-hot-toast": "^2.4.1",
     "react-router-dom": "^6.20.0",
     "sonner": "^1.7.0",
     "tailwind-merge": "^2.0.0",

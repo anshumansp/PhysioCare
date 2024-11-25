@@ -26,9 +26,7 @@ app.use('/api', limiter);
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://physioai.com', 'https://www.physioai.com']
-    : 'http://localhost:5173',
+  origin: '*',
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -55,6 +53,7 @@ app.use((err, req, res, next) => {
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  tlsAllowInvalidCertificates: true,
 })
 .then(() => console.log('Connected to MongoDB'))
 .catch((err) => console.error('MongoDB connection error:', err));

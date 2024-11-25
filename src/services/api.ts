@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { useClerk } from '@clerk/clerk-react';
 
 // Create axios instance with environment variables
 const api = axios.create({

@@ -152,7 +152,7 @@ export interface ChatMessage {
 
 export const sendMessage = async (message: string): Promise<string> => {
   try {
-    const response = await fetch(`${BACKEND_URL}/api/chat`, {
+    const response = await fetch(`${BACKEND_URL}/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
