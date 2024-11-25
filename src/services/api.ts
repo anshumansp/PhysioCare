@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useClerk } from '@clerk/clerk-react';
 
 const api = axios.create({
   baseURL: 'http://localhost:5000/api',
@@ -8,10 +9,17 @@ const api = axios.create({
   timeout: 60000  // 60 seconds
 });
 
+// Create a function to get the auth token
+const getAuthToken = async () => {
+  const clerk = useClerk();
+  const session = await clerk.session;
+  return session?.getToken();
+};
+
 // Request interceptor to add auth token
 api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
+  async (config) => {
+    const token = await getAuthToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -27,22 +35,21 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+      window.location.href = '/sign-in';
     }
     return Promise.reject(error);
   }
 );
 
 // Auth endpoints
-export const login = (data: { email: string; password: string }) =>
-  api.post('/auth/login', data);
-
 export const register = (data: { name: string; email: string; password: string }) =>
   api.post('/auth/register', data);
 
-export const googleAuth = (token: string) =>
-  api.post('/auth/google', { token });
+export const login = (data: { email: string; password: string }) =>
+  api.post('/auth/login', data);
+
+export const getCurrentUser = () =>
+  api.get('/auth/me');
 
 // Chat endpoints
 export const sendMessage = (message: string) =>

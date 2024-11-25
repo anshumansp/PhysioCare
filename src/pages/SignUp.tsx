@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
-import { GoogleLogin } from '@react-oauth/google';
+// import { GoogleLogin } from '@react-oauth/google';
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -29,7 +29,9 @@ const SignUp = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/register', {
+      console.log("I am trying to register");
+      console.log(formData);
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -41,6 +43,7 @@ const SignUp = () => {
         })
       });
 
+      console.log(formData);
       const data = await response.json();
 
       if (!response.ok) {
@@ -51,13 +54,14 @@ const SignUp = () => {
       toast.success('Registration successful!');
       navigate('/');
     } catch (error) {
+      console.error('Registration error:', error);
       toast.error(error instanceof Error ? error.message : 'Registration failed');
     }
   };
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/google', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/auth/google`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -77,6 +81,7 @@ const SignUp = () => {
       toast.success('Google sign-in successful!');
       navigate('/');
     } catch (error) {
+      console.error('Google sign-in error:', error);
       toast.error(error instanceof Error ? error.message : 'Google sign-in failed');
     }
   };
@@ -169,7 +174,7 @@ const SignUp = () => {
             </motion.button>
           </form>
 
-          <div className="mt-6">
+          {/* <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300 dark:border-gray-600" />
@@ -187,7 +192,7 @@ const SignUp = () => {
                 onError={() => toast.error('Google sign-in failed')}
               />
             </div>
-          </div>
+          </div> */}
 
           <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
             Already have an account?{' '}

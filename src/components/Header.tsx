@@ -1,25 +1,19 @@
 import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
-import { Moon, Sun, LogOut, Activity } from 'lucide-react';
+import { Activity, Sun, Moon } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { SignedIn, SignedOut, UserButton } from '@clerk/clerk-react';
 
 const Header = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   const { isDarkMode, toggleDarkMode } = useTheme();
-  const token = localStorage.getItem('token');
 
   const links = [
     { path: '/', label: 'Home' },
     { path: '/services', label: 'Services' },
     { path: '/contact', label: 'Contact' }
   ];
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/');
-  };
 
   return (
     <header className="bg-white dark:bg-dark-card shadow-sm fixed top-0 left-0 right-0 z-50">
@@ -65,26 +59,24 @@ const Header = () => {
               )}
             </motion.button>
 
-            {token ? (
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={handleLogout}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
+            <SignedIn>
+              <UserButton afterSignOutUrl="/" />
+            </SignedIn>
+            
+            <SignedOut>
+              <Link
+                to="/login"
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400"
               >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </motion.button>
-            ) : (
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => navigate('/signup')}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
+                Sign in
+              </Link>
+              <Link
+                to="/signup"
+                className="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-md"
               >
-                Get Started
-              </motion.button>
-            )}
+                Sign up
+              </Link>
+            </SignedOut>
           </div>
         </div>
       </nav>
