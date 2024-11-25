@@ -1,25 +1,45 @@
 import axios from 'axios';
 import { useClerk } from '@clerk/clerk-react';
 
+// Create axios instance with environment variables
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_BACKEND_URL,
   headers: {
     'Content-Type': 'application/json'
   },
-  timeout: 60000  // 60 seconds
+  timeout: import.meta.env.VITE_API_TIMEOUT  // Use environment variable for timeout
 });
 
+// Types
+interface AppointmentData {
+  name: string;
+  email: string;
+  phone: string;
+  date: Date;
+  timeSlot: string;
+  notes?: string;
+}
+
+interface AuthResponse {
+  token: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+  };
+}
+
 // Create a function to get the auth token
-const getAuthToken = async () => {
-  const clerk = useClerk();
-  const session = await clerk.session;
-  return session?.getToken();
+const getAuthToken = (): string | null => {
+  const token = localStorage.getItem('token');
+  return token;
 };
 
 // Request interceptor to add auth token
 api.interceptors.request.use(
-  async (config) => {
-    const token = await getAuthToken();
+  (config) => {
+    const token = getAuthToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -35,49 +55,57 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      window.location.href = '/sign-in';
+      // Clear token and redirect to login
+      localStorage.removeItem('token');
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }
 );
 
 // Auth endpoints
-export const register = (data: { name: string; email: string; password: string }) =>
-  api.post('/auth/register', data);
-
-export const login = (data: { email: string; password: string }) =>
-  api.post('/auth/login', data);
-
-export const getCurrentUser = () =>
-  api.get('/auth/me');
+export const authApi = {
+  register: (data: { name: string; email: string; password: string }) =>
+    api.post<AuthResponse>('/auth/register', data),
+  
+  login: (data: { email: string; password: string }) =>
+    api.post<AuthResponse>('/auth/login', data),
+  
+  googleAuth: (token: string) =>
+    api.post<AuthResponse>('/auth/google', { token }),
+  
+  getCurrentUser: () =>
+    api.get('/auth/me'),
+  
+  updateProfile: (data: { name?: string; email?: string; password?: string }) =>
+    api.put('/auth/profile', data)
+};
 
 // Chat endpoints
-export const sendMessage = (message: string) =>
-  api.post('/chat', { message });
-
-export const getChatHistory = () =>
-  api.get('/chat/history');
+export const chatApi = {
+  sendMessage: (message: string) =>
+    api.post('/chat', { message }),
+  
+  getChatHistory: () =>
+    api.get('/chat/history')
+};
 
 // Appointment endpoints
-export const createAppointment = (data: {
-  name: string;
-  email: string;
-  phone: string;
-  date: Date;
-  timeSlot: string;
-  notes?: string;
-}) => api.post('/appointments', data);
-
-export const getMyAppointments = () =>
-  api.get('/appointments/my-appointments');
-
-export const getAvailableSlots = (date: string) =>
-  api.get(`/appointments/available-slots/${date}`);
-
-export const updateAppointment = (id: string, status: string) =>
-  api.patch(`/appointments/${id}`, { status });
-
-export const cancelAppointment = (id: string) =>
-  api.delete(`/appointments/${id}`);
+export const appointmentApi = {
+  create: (data: AppointmentData) =>
+    api.post('/appointments', data),
+  
+  getMyAppointments: () =>
+    api.get('/appointments/me'),
+  
+  getAvailableSlots: (date: string) =>
+    api.get(`/appointments/slots?date=${date}`),
+  
+  update: (id: string, data: Partial<AppointmentData>) =>
+    api.put(`/appointments/${id}`, data),
+  
+  cancel: (id: string) =>
+    api.delete(`/appointments/${id}`)
+};
 
 export default api;

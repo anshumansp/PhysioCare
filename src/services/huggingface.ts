@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API_KEY = import.meta.env.VITE_HUGGING_FACE_API_KEY;
 
 const SYSTEM_PROMPT = `You are Dr. AI, a professional physiotherapist conducting a patient consultation. Your role is to understand the patient's condition through careful questioning and provide appropriate guidance.
