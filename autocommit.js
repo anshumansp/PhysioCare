@@ -13,18 +13,35 @@ const gitCommit = (filePath) => {
     const commands = [
         'git add .',
         `git commit -m "auto: updated ${fileName}"`,
-        'git push'
+        'git push --set-upstream origin $(git rev-parse --abbrev-ref HEAD)' // This will push and set upstream for current branch
     ];
 
-    exec(commands.join(' && '), (error, stdout, stderr) => {
+    const command = commands.join(' && ');
+
+    exec(command, { cwd: process.cwd() }, (error, stdout, stderr) => {
         if (error) {
             console.error(`Error: ${error.message}`);
+            // If the error is about upstream, try to set it up
+            if (error.message.includes('no upstream branch')) {
+                const currentBranch = exec('git rev-parse --abbrev-ref HEAD', { cwd: process.cwd() }, (err, branchName) => {
+                    if (!err) {
+                        const setupCommand = `git push --set-upstream origin ${branchName.trim()}`;
+                        exec(setupCommand, { cwd: process.cwd() }, (setupErr, setupStdout, setupStderr) => {
+                            if (setupErr) {
+                                console.error(`Error setting upstream: ${setupErr.message}`);
+                            } else {
+                                console.log(`Upstream branch set successfully: ${setupStdout}`);
+                            }
+                        });
+                    }
+                });
+            }
             return;
         }
         if (stderr) {
             console.log(`Git message: ${stderr}`);
         }
-        console.log(`Changes committed successfully: ${stdout}`);
+        console.log(`Changes committed and pushed successfully: ${stdout}`);
     });
 };
 
