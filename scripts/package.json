@@ -1,0 +1,12 @@
+{
+  "name": "git-auto-watcher",
+  "version": "1.0.0",
+  "description": "Automatic git commit and push on file changes",
+  "main": "gitWatcher.js",
+  "scripts": {
+    "watch": "node gitWatcher.js"
+  },
+  "dependencies": {
+    "chokidar": "^3.6.0"
+  }
+}

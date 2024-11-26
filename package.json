@@ -9,13 +9,15 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
-    "coverage": "vitest run --coverage"
+    "coverage": "vitest run --coverage",
+    "autocommit": "node autocommit.js"
   },
   "dependencies": {
     "@fontsource/poppins": "^5.0.8",
     "@headlessui/react": "^2.2.0",
     "@sentry/react": "^8.40.0",
     "axios": "^1.6.2",
+    "chokidar": "^3.5.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "date-fns": "^2.30.0",
