@@ -27,14 +27,6 @@ interface AuthenticatedRequest extends Request {
 
 const router = express.Router();
 
-// Test route
-router.get('/working', (req: Request, res: Response) => {
-  res.status(200).json({
-    success: true,
-    message: "Auth API is working"
-  });
-});
-
 // Register user
 router.post('/register', async (req: RegisterRequest, res: Response) => {
   try {

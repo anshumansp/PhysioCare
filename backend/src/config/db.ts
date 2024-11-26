@@ -47,6 +47,7 @@ const connectDB = async (): Promise<void> => {
           useNewUrlParser: true,
           useUnifiedTopology: true,
           serverSelectionTimeoutMS: 5000,
+          tlsAllowInvalidCertificates: true,
           socketTimeoutMS: 45000,
         } as mongoose.ConnectOptions);
 
