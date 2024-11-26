@@ -1,5 +1,11 @@
-const chokidar = require('chokidar');
-const { exec } = require('child_process');
+import chokidar from 'chokidar';
+import { exec } from 'child_process';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Function to set up upstream branch
 function setupUpstream(branch) {
@@ -27,6 +33,8 @@ async function commitAndPush(filepath) {
             }
 
             const currentBranch = stdout.trim();
+            console.log(`Current branch: ${currentBranch}`);
+            console.log(`Attempting to commit changes for: ${filepath}`);
             
             try {
                 // First try to add and commit
@@ -36,6 +44,7 @@ async function commitAndPush(filepath) {
                             reject(error);
                             return;
                         }
+                        console.log('Changes committed successfully');
                         resolve(true);
                     });
                 });
@@ -46,6 +55,7 @@ async function commitAndPush(filepath) {
                         exec('git push', async (error, stdout, stderr) => {
                             if (error) {
                                 if (error.message.includes('no upstream branch')) {
+                                    console.log('No upstream branch found, setting it up...');
                                     // If no upstream, set it up and try pushing again
                                     await setupUpstream(currentBranch);
                                     await new Promise((resolve, reject) => {
@@ -78,26 +88,40 @@ async function commitAndPush(filepath) {
     }
 }
 
-// Initialize watcher
-const watcher = chokidar.watch('.', {
+// Initialize watcher with specific paths
+const watchPaths = [
+    './src/**/*.ts',
+    './src/**/*.tsx',
+    './src/**/*.js',
+    './src/**/*.jsx',
+    './backend/src/**/*.ts',
+    './backend/src/**/*.js'
+];
+
+console.log('Setting up file watcher for the following patterns:', watchPaths);
+
+const watcher = chokidar.watch(watchPaths, {
     ignored: [
         /(^|[\/\\])\../,      // ignore dotfiles
         '**/node_modules/**', 
         '**/dist/**',
         '**/build/**',
         '**/.git/**',
-        'watcher.js'
+        '**/watcher.js'
     ],
     persistent: true,
     ignoreInitial: true,
     awaitWriteFinish: {
-        stabilityThreshold: 2000,
+        stabilityThreshold: 1000,
         pollInterval: 100
     }
 });
 
 // Add event listeners
 watcher
+    .on('ready', () => {
+        console.log('Initial scan complete. Ready for changes...');
+    })
     .on('change', path => {
         console.log(`File ${path} has been changed`);
         commitAndPush(path);
@@ -109,6 +133,9 @@ watcher
     .on('unlink', path => {
         console.log(`File ${path} has been removed`);
         commitAndPush(path);
+    })
+    .on('error', error => {
+        console.error(`Watcher error: ${error}`);
     });
 
 console.log('Watching for file changes...');
