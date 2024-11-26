@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest",
     "coverage": "vitest run --coverage",
-    "autocommit": "node autocommit.js"
+    "autocommit": "node autocommit.js",
+    "watch": "node watcher.js"
   },
   "dependencies": {
     "@fontsource/poppins": "^5.0.8",
