@@ -10,7 +10,6 @@
     "preview": "vite preview",
     "test": "vitest",
     "coverage": "vitest run --coverage",
-    "autocommit": "node autocommit.js",
     "watch": "node watcher.js",
     "backend": "cd backend && npm run dev",
     "start": "concurrently \"npm run dev\" \"npm run watch\" \"npm run backend\" --names \"frontend,git,backend\" --prefix-colors \"cyan,yellow,green\""

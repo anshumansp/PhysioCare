@@ -112,7 +112,7 @@ const watcher = chokidar.watch(watchPaths, {
     persistent: true,
     ignoreInitial: true,
     awaitWriteFinish: {
-        stabilityThreshold: 1000,
+        stabilityThreshold: 2000,
         pollInterval: 100
     }
 });
