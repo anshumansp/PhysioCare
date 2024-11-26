@@ -15,6 +15,8 @@ dotenv.config();
 const chatRoutes = require('./routes/chat');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
+const appointmentRoutes = require('./routes/appointments');
+const settingsRoutes = require('./routes/settings');
 
 const app = express();
 
@@ -154,9 +156,11 @@ app.get('/health', (req, res) => {
 connectWithRetry();
 
 // Routes
-app.use('/api/chat', chatRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/appointments', appointmentRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // Serve uploaded files
 app.use('/uploads', express.static('uploads'));

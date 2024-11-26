@@ -38,12 +38,22 @@ const Contact = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('');
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    const user = getCurrentUser();
-    if (!user) {
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
       toast.error('Please login to schedule an appointment');
       navigate('/login');
+      return;
+    }
+    setUser(currentUser);
+    // Pre-fill name if available
+    if (currentUser.name) {
+      setFormData(prev => ({
+        ...prev,
+        patientName: currentUser.name
+      }));
     }
   }, [navigate]);
 
@@ -58,6 +68,16 @@ const Contact = () => {
   };
 
   const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (date < today) {
+        toast.error("Please select today's date or a future date");
+        return;
+      }
+    }
+    
     setFormData(prev => ({
       ...prev,
       appointmentDate: date
@@ -75,64 +95,115 @@ const Contact = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!user) {
+      toast.error('Please login to schedule an appointment');
+      navigate('/login');
+      return;
+    }
+
     if (!formData.appointmentDate) {
       toast.error('Please select an appointment date');
       return;
     }
 
-    try {
-      await createAppointment({
-        ...formData,
-        age: parseInt(formData.age),
-        appointmentDate: formData.appointmentDate
-      });
+    if (!formData.appointmentTime) {
+      toast.error('Please select an appointment time');
+      return;
+    }
 
+    try {
+      // Log the current form state
+      console.log('Current form state:', formData);
+
+      // Create the appointment
+      const response = await createAppointment(formData);
+      
+      console.log('Appointment created:', response);
       toast.success('Appointment scheduled successfully!');
-      setFormData(initialFormData);
-      setSelectedTimeSlot('');
-    } catch (error) {
-      toast.error('Failed to schedule appointment. Please try again.');
+      navigate('/dashboard');
+    } catch (error: any) {
+      console.error('Form submission error:', error);
+      
+      const errorMessage = error.response?.data?.message 
+        || error.response?.data?.error 
+        || error.message 
+        || 'Failed to schedule appointment. Please try again.';
+      
+      toast.error(errorMessage);
     }
   };
 
   const css = `
     .rdp {
-      --rdp-cell-size: 45px;
+      --rdp-cell-size: min(40px, 10vw);
       --rdp-accent-color: #4F46E5;
-      --rdp-background-color: #E0E7FF;
       margin: 0;
       width: 100%;
     }
+    .dark .rdp {
+      --rdp-accent-color: #6366F1;
+      color: #E5E7EB;
+    }
     .rdp-months {
       width: 100%;
-      justify-content: space-around;
+      justify-content: center;
     }
     .rdp-month {
       width: 100%;
+      max-width: 100%;
     }
     .rdp-table {
       width: 100%;
       max-width: none;
     }
-    .rdp-day_selected:not([disabled]) { 
-      background-color: var(--rdp-accent-color);
-      color: white;
+    .rdp-caption {
+      padding: 0.5rem;
+      color: inherit;
+    }
+    .rdp-nav {
+      padding: 0.2rem;
+      color: inherit;
+    }
+    .rdp-head_cell {
+      font-size: 0.875rem;
+      font-weight: 600;
+      padding: 0.5rem 0;
+      color: inherit;
+    }
+    .rdp-cell {
+      padding: 0;
+    }
+    .rdp-day {
+      width: var(--rdp-cell-size);
+      height: var(--rdp-cell-size);
+      font-size: 0.875rem;
+      border-radius: 0.375rem;
+      transition: all 0.2s ease;
+      color: inherit;
+      background: transparent;
+    }
+    .rdp-day_today {
       font-weight: bold;
+      color: var(--rdp-accent-color);
     }
-    .rdp-day_selected:hover:not([disabled]) { 
+    .dark .rdp-day_today {
+      color: #818CF8;
+    }
+    .rdp-day_selected {
       background-color: var(--rdp-accent-color);
-      opacity: 0.8;
+      color: white !important;
+      font-weight: 500;
     }
-    .dark .rdp-day_selected:not([disabled]) {
-      background-color: #6366F1;
+    .rdp-day:hover:not(.rdp-day_selected) {
+      background-color: #E0E7FF;
+      cursor: pointer;
     }
-    .dark .rdp {
-      --rdp-background-color: #4F46E5;
-      color: #E5E7EB;
+    .dark .rdp-day:hover:not(.rdp-day_selected) {
+      background-color: #374151;
     }
-    .dark .rdp-day:hover:not([disabled]) {
-      background-color: #4F46E5;
-      opacity: 0.8;
+    .rdp-day_outside {
+      opacity: 0;
+      pointer-events: none;
     }
   `;
 
@@ -218,13 +289,21 @@ const Contact = () => {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Appointment Date
                 </label>
-                <div className="border-2 rounded-lg p-4 bg-gray-50 dark:bg-dark-hover w-full flex justify-center border-gray-300 dark:border-gray-600">
+                <div className="border-2 rounded-lg p-2 sm:p-4 bg-gray-50 dark:bg-dark-hover w-full flex justify-center border-gray-300 dark:border-gray-600">
                   <DayPicker
                     mode="single"
                     selected={formData.appointmentDate}
                     onSelect={handleDateSelect}
                     fromDate={new Date()}
-                    required
+                    modifiers={{
+                      selected: formData.appointmentDate
+                    }}
+                    modifiersStyles={{
+                      selected: {
+                        backgroundColor: 'var(--rdp-accent-color)',
+                        color: 'white'
+                      }
+                    }}
                     className="w-full max-w-full"
                   />
                 </div>
@@ -234,7 +313,7 @@ const Contact = () => {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Appointment Time
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
                   {timeSlots.map((slot) => (
                     <motion.button
                       key={slot}
@@ -242,7 +321,7 @@ const Contact = () => {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => handleTimeSlotSelect(slot)}
-                      className={`p-3 h-12 text-sm rounded-md transition-colors ${
+                      className={`p-2 sm:p-3 h-10 sm:h-12 text-xs sm:text-sm rounded-md transition-colors ${
                         selectedTimeSlot === slot
                           ? 'bg-primary-600 text-white'
                           : 'bg-gray-100 dark:bg-dark-hover text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
